@@ -122,11 +122,12 @@ curl -i http://localhost:8080/health
 curl -i http://localhost:8080/v1/tasks
 ```
 
+
+
+
 **Аналогичный результат** – заголовки распределяются между `tasks-1`, `tasks-2`, `tasks-3`.
 
-**Скриншот 4** – Чередование экземпляров при вызове `/v1/tasks`.
-
-### 6.5. Проверка отказоустойчивости (остановка одной реплики)
+### Проверка отказоустойчивости 
 
 ```bash
 docker compose stop tasks_1
@@ -138,18 +139,12 @@ docker compose stop tasks_1
 for i in {1..6}; do curl -s -D - http://localhost:8080/v1/tasks -o /dev/null | grep "X-Instance-ID"; done
 ```
 
-**Вывод (только `tasks-2` и `tasks-3`):**
-```
-X-Instance-ID: tasks-2
-X-Instance-ID: tasks-3
-X-Instance-ID: tasks-2
-X-Instance-ID: tasks-3
-...
-```
 
-**Скриншот 5** – После остановки `tasks_1` ответы приходят только от `tasks-2` и `tasks-3`.
 
-### 6.6. Восстановление реплики
+
+После остановки tasks_1 в ответах появляются только tasks-2 и tasks-3 (nginx перестал направлять трафик на нерабочую реплику).
+
+### Восстановление реплики
 
 ```bash
 docker compose start tasks_1
@@ -161,9 +156,11 @@ docker compose start tasks_1
 for i in {1..6}; do curl -s -D - http://localhost:8080/v1/tasks -o /dev/null | grep "X-Instance-ID"; done
 ```
 
-**Вывод** – снова видны все три `tasks-1`, `tasks-2`, `tasks-3`.
+![Uploading image.png…]()
 
-**Скриншот 6** – Балансировка восстановлена, все три реплики активны.
+Снова видны все три `tasks-1`, `tasks-2`, `tasks-3`.
+
+
 **Ключевые выводы:**
 - Для горизонтального масштабирования сервис должен быть **stateless** (в учебном примере – статический список задач, но в реальности состояние должно храниться в общей БД или Redis).
 - Balancer скрывает внутреннюю архитектуру от клиента, обеспечивая единый адрес.
